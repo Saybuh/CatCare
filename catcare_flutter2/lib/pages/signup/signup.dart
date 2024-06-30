@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:catcare_flutter2/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 
 class Signup extends StatefulWidget {
@@ -30,6 +32,47 @@ class _SignupState extends State<Signup> {
         print('No image selected.');
       }
     });
+  }
+
+  Future<String?> _uploadImageToStorage(File image, String userId) async {
+    try {
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('user_images')
+          .child('$userId.jpg');
+      await ref.putFile(image);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print("Error uploading image: $e");
+      return null;
+    }
+  }
+
+  Future<void> _signup(BuildContext context) async {
+    try {
+      await AuthService().signup(
+          email: _emailController.text,
+          password: _passwordController.text,
+          context: context);
+
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        String? imageUrl;
+        if (_image != null) {
+          imageUrl = await _uploadImageToStorage(_image!, user.uid);
+        }
+
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'imageUrl': imageUrl ?? '',
+        });
+
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      print("Error signing up: $e");
+    }
   }
 
   @override
@@ -78,7 +121,7 @@ class _SignupState extends State<Signup> {
               const SizedBox(
                 height: 20,
               ),
-              _signup(context),
+              _signupButton(context),
             ],
           ),
         ),
@@ -217,7 +260,7 @@ class _SignupState extends State<Signup> {
     );
   }
 
-  Widget _signup(BuildContext context) {
+  Widget _signupButton(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xff0D6EFD),
@@ -228,15 +271,7 @@ class _SignupState extends State<Signup> {
         elevation: 0,
       ),
       onPressed: () async {
-        await AuthService().signup(
-            email: _emailController.text,
-            password: _passwordController.text,
-            context: context);
-        if (FirebaseAuth.instance.currentUser != null) {
-          // Save additional user info (name and image)
-          // You will need to implement the code to save these details to your Firestore or Realtime Database
-          Navigator.pushReplacementNamed(context, '/home');
-        }
+        await _signup(context);
       },
       child: const Text("Sign Up"),
     );

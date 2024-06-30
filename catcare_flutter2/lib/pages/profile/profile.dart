@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:io';
+import 'package:catcare_flutter2/services/auth_service.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -14,7 +13,6 @@ class _ProfileState extends State<Profile> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _nameController = TextEditingController();
-  File? _image;
   String? _imageUrl;
 
   @override
@@ -28,55 +26,32 @@ class _ProfileState extends State<Profile> {
     if (user != null) {
       DocumentSnapshot userProfile =
           await _firestore.collection('users').doc(user.uid).get();
-      _nameController.text = userProfile['name'];
-      _imageUrl = userProfile['imageUrl'];
-      setState(() {});
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        print('No image selected.');
+      if (userProfile.exists) {
+        setState(() {
+          _nameController.text = userProfile['name'];
+          _imageUrl = userProfile['imageUrl'];
+        });
       }
-    });
+    }
   }
 
   Future<void> _updateProfile() async {
     User? user = _auth.currentUser;
     if (user != null) {
-      String? imageUrl;
-      if (_image != null) {
-        // Upload image to storage and get URL
-        // Assuming you have a function uploadImageToStorage that handles the upload
-        imageUrl = await uploadImageToStorage(_image!, user.uid);
-      }
-
       await _firestore.collection('users').doc(user.uid).update({
         'name': _nameController.text,
-        'imageUrl': imageUrl ?? _imageUrl,
+        'imageUrl': _imageUrl,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Profile updated successfully')));
-      setState(() {
-        _imageUrl = imageUrl ?? _imageUrl;
-      });
+      setState(() {});
     }
   }
 
-  Future<String> uploadImageToStorage(File image, String userId) async {
-    // Implement your image upload logic here and return the image URL
-    // For example:
-    // final ref = FirebaseStorage.instance.ref().child('user_images').child('$userId.jpg');
-    // await ref.putFile(image);
-    // return await ref.getDownloadURL();
-    return 'image_url_placeholder'; // Replace with actual URL after implementing
+  Future<void> _signOut() async {
+    await AuthService().signout(context: context);
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
@@ -96,41 +71,36 @@ class _ProfileState extends State<Profile> {
               child: Text(
                 'Edit Profile',
                 style: GoogleFonts.raleway(
-                    textStyle: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 32)),
+                  textStyle: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            _image != null
+            _imageUrl != null
                 ? CircleAvatar(
                     radius: 40,
-                    backgroundImage: FileImage(_image!),
+                    backgroundImage: NetworkImage(_imageUrl!),
                   )
-                : _imageUrl != null
-                    ? CircleAvatar(
-                        radius: 40,
-                        backgroundImage: NetworkImage(_imageUrl!),
-                      )
-                    : CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.grey[300],
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-            TextButton(
-              onPressed: _pickImage,
-              child: Text('Change Profile Image'),
-            ),
+                : CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.grey[300],
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: Colors.grey[700],
+                    ),
+                  ),
             const SizedBox(height: 20),
             _nameField(),
             const SizedBox(height: 20),
             _emailField(user?.email ?? ''),
             const SizedBox(height: 20),
             _saveButton(),
+            const SizedBox(height: 20),
+            _signOutButton(),
           ],
         ),
       ),
@@ -144,21 +114,25 @@ class _ProfileState extends State<Profile> {
         Text(
           'Name',
           style: GoogleFonts.raleway(
-              textStyle: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.normal,
-                  fontSize: 16)),
+            textStyle: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.normal,
+              fontSize: 16,
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _nameController,
           decoration: InputDecoration(
-              filled: true,
-              fillColor: const Color(0xffF7F7F9),
-              border: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.circular(14))),
-        )
+            filled: true,
+            fillColor: const Color(0xffF7F7F9),
+            border: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -170,22 +144,26 @@ class _ProfileState extends State<Profile> {
         Text(
           'Email Address',
           style: GoogleFonts.raleway(
-              textStyle: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.normal,
-                  fontSize: 16)),
+            textStyle: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.normal,
+              fontSize: 16,
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: TextEditingController(text: email),
           readOnly: true,
           decoration: InputDecoration(
-              filled: true,
-              fillColor: const Color(0xffF7F7F9),
-              border: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.circular(14))),
-        )
+            filled: true,
+            fillColor: const Color(0xffF7F7F9),
+            border: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -202,6 +180,21 @@ class _ProfileState extends State<Profile> {
       ),
       onPressed: _updateProfile,
       child: const Text("Save"),
+    );
+  }
+
+  Widget _signOutButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        minimumSize: const Size(double.infinity, 60),
+        elevation: 0,
+      ),
+      onPressed: _signOut,
+      child: const Text("Sign Out"),
     );
   }
 }
