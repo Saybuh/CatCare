@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "447601770267",
+    "project_id": "catcare-3b18c",
+    "storage_bucket": "catcare-3b18c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447601770267:android:eae3bc8befe85710a8ddbe",
+        "android_client_info": {
+          "package_name": "com.catcare.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj29UV-KgtGJcfc7Uer3_is9sPfv8OP6I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447601770267:android:a152c794acdedca8a8ddbe",
+        "android_client_info": {
+          "package_name": "com.example.catcare_flutter2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj29UV-KgtGJcfc7Uer3_is9sPfv8OP6I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
