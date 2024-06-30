@@ -8,6 +8,8 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Home Page'),
@@ -16,16 +18,16 @@ class Home extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            UserAccountsDrawerHeader(
+              accountName: Text(user?.displayName ?? 'User Name'),
+              accountEmail: Text(user?.email ?? 'user@example.com'),
+              currentAccountPicture: CircleAvatar(
+                backgroundImage: NetworkImage(
+                  user?.photoURL ?? 'https://via.placeholder.com/150',
+                ),
+              ),
               decoration: BoxDecoration(
                 color: Colors.blue,
-              ),
-              child: Text(
-                'CatCare',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
               ),
             ),
             ListTile(
@@ -97,55 +99,108 @@ class Home extends StatelessWidget {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Hello👋',
+                'Hello, ${user?.displayName ?? 'User'}👋',
                 style: GoogleFonts.raleway(
-                    textStyle: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20)),
+                  textStyle: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
               ),
-              const SizedBox(
-                height: 10,
+              const SizedBox(height: 20),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: Icon(Icons.schedule),
+                  title: Text('Upcoming Food Schedule'),
+                  subtitle: Text('Today at 6:00 PM'),
+                ),
               ),
-              Text(
-                FirebaseAuth.instance.currentUser!.email!.toString(),
-                style: GoogleFonts.raleway(
-                    textStyle: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20)),
+              const SizedBox(height: 20),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: Icon(Icons.schedule),
+                  title: Text('Upcoming Water Schedule'),
+                  subtitle: Text('Today at 8:00 PM'),
+                ),
               ),
-              const SizedBox(
-                height: 30,
+              const SizedBox(height: 20),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: Icon(Icons.lightbulb),
+                  title: Text('Tip of the Day'),
+                  subtitle: Text(
+                    'Ensure your cat has fresh water available at all times.',
+                  ),
+                ),
               ),
-              _logout(context)
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/food_schedule');
+                    },
+                    icon: Icon(Icons.schedule),
+                    label: Text('Food Schedule'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/water_schedule');
+                    },
+                    icon: Icon(Icons.schedule),
+                    label: Text('Water Schedule'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/profile');
+                },
+                icon: Icon(Icons.person),
+                label: Text('View Profile'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _logout(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xff0D6EFD),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-        minimumSize: const Size(double.infinity, 60),
-        elevation: 0,
-      ),
-      onPressed: () async {
-        await AuthService().signout(context: context);
-        Navigator.pushReplacementNamed(context, '/login');
-      },
-      child: const Text("Sign Out"),
     );
   }
 }
