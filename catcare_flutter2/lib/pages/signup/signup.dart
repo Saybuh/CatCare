@@ -3,12 +3,34 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:catcare_flutter2/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class Signup extends StatelessWidget {
+class Signup extends StatefulWidget {
   Signup({super.key});
 
+  @override
+  _SignupState createState() => _SignupState();
+}
+
+class _SignupState extends State<Signup> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  File? _image;
+
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +60,11 @@ class Signup extends StatelessWidget {
                 ),
               ),
               const SizedBox(
-                height: 80,
+                height: 20,
+              ),
+              _nameField(),
+              const SizedBox(
+                height: 20,
               ),
               _emailAddress(),
               const SizedBox(
@@ -46,13 +72,51 @@ class Signup extends StatelessWidget {
               ),
               _password(),
               const SizedBox(
-                height: 50,
+                height: 20,
+              ),
+              _imagePicker(),
+              const SizedBox(
+                height: 20,
               ),
               _signup(context),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _nameField() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Name',
+          style: GoogleFonts.raleway(
+              textStyle: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 16)),
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+        TextField(
+          controller: _nameController,
+          decoration: InputDecoration(
+              filled: true,
+              hintText: 'Your name',
+              hintStyle: const TextStyle(
+                  color: Color(0xff6A6A6A),
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14),
+              fillColor: const Color(0xffF7F7F9),
+              border: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(14))),
+        )
+      ],
     );
   }
 
@@ -120,6 +184,39 @@ class Signup extends StatelessWidget {
     );
   }
 
+  Widget _imagePicker() {
+    return Column(
+      children: [
+        Text(
+          'Profile Image (Optional)',
+          style: GoogleFonts.raleway(
+              textStyle: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 16)),
+        ),
+        const SizedBox(height: 16),
+        _image != null
+            ? CircleAvatar(
+                radius: 40,
+                backgroundImage: FileImage(_image!),
+              )
+            : CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.grey[300],
+                child: Icon(
+                  Icons.camera_alt,
+                  color: Colors.grey[700],
+                ),
+              ),
+        TextButton(
+          onPressed: _pickImage,
+          child: Text('Select Image'),
+        ),
+      ],
+    );
+  }
+
   Widget _signup(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -136,6 +233,8 @@ class Signup extends StatelessWidget {
             password: _passwordController.text,
             context: context);
         if (FirebaseAuth.instance.currentUser != null) {
+          // Save additional user info (name and image)
+          // You will need to implement the code to save these details to your Firestore or Realtime Database
           Navigator.pushReplacementNamed(context, '/home');
         }
       },
