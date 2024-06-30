@@ -1,8 +1,8 @@
-import 'package:catcare_flutter2/pages/signup/signup.dart';
-import 'package:catcare_flutter2/services/auth_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:catcare_flutter2/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Login extends StatelessWidget {
   Login({super.key});
@@ -20,22 +20,6 @@ class Login extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         toolbarHeight: 100,
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Container(
-            margin: const EdgeInsets.only(left: 10),
-            decoration: const BoxDecoration(
-                color: Color(0xffF7F7F9), shape: BoxShape.circle),
-            child: const Center(
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.black,
-              ),
-            ),
-          ),
-        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -151,6 +135,9 @@ class Login extends StatelessWidget {
             email: _emailController.text,
             password: _passwordController.text,
             context: context);
+        if (FirebaseAuth.instance.currentUser != null) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       },
       child: const Text("Sign In"),
     );
@@ -177,10 +164,7 @@ class Login extends StatelessWidget {
                     fontSize: 16),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Signup()),
-                    );
+                    Navigator.pushReplacementNamed(context, '/signup');
                   }),
           ])),
     );

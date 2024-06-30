@@ -1,8 +1,8 @@
-import 'package:catcare_flutter2/pages/login/login.dart';
-import 'package:catcare_flutter2/services/auth_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:catcare_flutter2/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Signup extends StatelessWidget {
   Signup({super.key});
@@ -13,45 +13,47 @@ class Signup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: true,
-        bottomNavigationBar: _signin(context),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          toolbarHeight: 50,
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Column(
-              children: [
-                Center(
-                  child: Text(
-                    'Register Account',
-                    style: GoogleFonts.raleway(
-                        textStyle: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 32)),
-                  ),
+      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
+      bottomNavigationBar: _signin(context),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        toolbarHeight: 50,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Register Account',
+                  style: GoogleFonts.raleway(
+                      textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 32)),
                 ),
-                const SizedBox(
-                  height: 80,
-                ),
-                _emailAddress(),
-                const SizedBox(
-                  height: 20,
-                ),
-                _password(),
-                const SizedBox(
-                  height: 50,
-                ),
-                _signup(context),
-              ],
-            ),
+              ),
+              const SizedBox(
+                height: 80,
+              ),
+              _emailAddress(),
+              const SizedBox(
+                height: 20,
+              ),
+              _password(),
+              const SizedBox(
+                height: 50,
+              ),
+              _signup(context),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Widget _emailAddress() {
@@ -133,6 +135,9 @@ class Signup extends StatelessWidget {
             email: _emailController.text,
             password: _passwordController.text,
             context: context);
+        if (FirebaseAuth.instance.currentUser != null) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       },
       child: const Text("Sign Up"),
     );
@@ -159,10 +164,7 @@ class Signup extends StatelessWidget {
                     fontSize: 16),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Login()),
-                    );
+                    Navigator.pushReplacementNamed(context, '/login');
                   }),
           ])),
     );
