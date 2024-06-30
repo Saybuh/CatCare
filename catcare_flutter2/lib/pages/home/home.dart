@@ -9,7 +9,92 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Home Page'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'CatCare',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.pets),
+              title: Text('My Cats'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/cats');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.schedule),
+              title: Text('Food Schedule'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/food_schedule');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.schedule),
+              title: Text('Water Schedule'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/water_schedule');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.medical_services),
+              title: Text('Illness Identification'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/illness_identification');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.info),
+              title: Text('Care Tips'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/care_tips');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Profile'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.exit_to_app),
+              title: Text('Sign Out'),
+              onTap: () async {
+                await AuthService().signout(context: context);
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -58,6 +143,7 @@ class Home extends StatelessWidget {
       ),
       onPressed: () async {
         await AuthService().signout(context: context);
+        Navigator.pushReplacementNamed(context, '/login');
       },
       child: const Text("Sign Out"),
     );
