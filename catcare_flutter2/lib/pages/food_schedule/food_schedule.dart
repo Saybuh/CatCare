@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,7 +23,14 @@ class _FoodScheduleState extends State<FoodSchedule> {
   }
 
   void _fetchCats() async {
-    QuerySnapshot snapshot = await _firestore.collection('cats').get();
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    QuerySnapshot snapshot = await _firestore
+        .collection('cats')
+        .where('userId', isEqualTo: user.uid) // Add this line
+        .get();
+
     List<Map<String, dynamic>> cats = snapshot.docs.map((doc) {
       return {
         'id': doc.id,
@@ -36,11 +44,13 @@ class _FoodScheduleState extends State<FoodSchedule> {
   }
 
   void _addOrUpdateFeedingTime(String? id) async {
-    if (_selectedCatId.isEmpty) {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null || _selectedCatId.isEmpty) {
       return;
     }
 
     final feedingTimeData = {
+      'userId': user.uid, // Add this line
       'catId': _selectedCatId,
       'time': _selectedTime.format(context),
       'mealType': _selectedMealType,
@@ -159,6 +169,8 @@ class _FoodScheduleState extends State<FoodSchedule> {
 
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Food Schedule'),
@@ -174,7 +186,10 @@ class _FoodScheduleState extends State<FoodSchedule> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('feeding_times').snapshots(),
+        stream: _firestore
+            .collection('feeding_times')
+            .where('userId', isEqualTo: user?.uid) // Add this line
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());

@@ -13,6 +13,7 @@ class _ProfileState extends State<Profile> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _imageUrlController = TextEditingController();
   String? _imageUrl;
 
   @override
@@ -30,6 +31,7 @@ class _ProfileState extends State<Profile> {
         setState(() {
           _nameController.text = userProfile['name'];
           _imageUrl = userProfile['imageUrl'];
+          _imageUrlController.text = _imageUrl ?? '';
         });
       }
     }
@@ -40,12 +42,14 @@ class _ProfileState extends State<Profile> {
     if (user != null) {
       await _firestore.collection('users').doc(user.uid).update({
         'name': _nameController.text,
-        'imageUrl': _imageUrl,
+        'imageUrl': _imageUrlController.text,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Profile updated successfully')));
-      setState(() {});
+      setState(() {
+        _imageUrl = _imageUrlController.text;
+      });
     }
   }
 
@@ -97,6 +101,8 @@ class _ProfileState extends State<Profile> {
             _nameField(),
             const SizedBox(height: 20),
             _emailField(user?.email ?? ''),
+            const SizedBox(height: 20),
+            _imageUrlField(),
             const SizedBox(height: 20),
             _saveButton(),
             const SizedBox(height: 20),
@@ -157,6 +163,37 @@ class _ProfileState extends State<Profile> {
           readOnly: true,
           decoration: InputDecoration(
             filled: true,
+            fillColor: const Color(0xffF7F7F9),
+            border: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _imageUrlField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Profile Image URL',
+          style: GoogleFonts.raleway(
+            textStyle: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.normal,
+              fontSize: 16,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _imageUrlController,
+          decoration: InputDecoration(
+            filled: true,
+            hintText: 'Image URL',
             fillColor: const Color(0xffF7F7F9),
             border: OutlineInputBorder(
               borderSide: BorderSide.none,

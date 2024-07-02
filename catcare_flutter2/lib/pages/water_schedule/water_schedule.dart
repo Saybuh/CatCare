@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,7 +23,14 @@ class _WaterScheduleState extends State<WaterSchedule> {
   }
 
   void _fetchCats() async {
-    QuerySnapshot snapshot = await _firestore.collection('cats').get();
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    QuerySnapshot snapshot = await _firestore
+        .collection('cats')
+        .where('userId', isEqualTo: user.uid) // Add this line
+        .get();
+
     List<Map<String, dynamic>> cats = snapshot.docs.map((doc) {
       return {
         'id': doc.id,
@@ -36,11 +44,13 @@ class _WaterScheduleState extends State<WaterSchedule> {
   }
 
   void _addOrUpdateWateringTime(String? id) async {
-    if (_selectedCatId.isEmpty || _selectedAmount.isEmpty) {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null || _selectedCatId.isEmpty || _selectedAmount.isEmpty) {
       return;
     }
 
     final wateringTimeData = {
+      'userId': user.uid, // Add this line
       'catId': _selectedCatId,
       'time': _selectedTime.format(context),
       'amount': _selectedAmount,
@@ -153,6 +163,8 @@ class _WaterScheduleState extends State<WaterSchedule> {
 
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Water Schedule'),
@@ -168,7 +180,10 @@ class _WaterScheduleState extends State<WaterSchedule> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('watering_times').snapshots(),
+        stream: _firestore
+            .collection('watering_times')
+            .where('userId', isEqualTo: user?.uid) // Add this line
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());

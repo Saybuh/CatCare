@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Cats extends StatefulWidget {
@@ -14,14 +15,18 @@ class _CatsState extends State<Cats> {
   String _imageUrl = ''; // This should be updated with the image upload logic
 
   void _addCat() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
     if (_nameController.text.isEmpty ||
         _typeController.text.isEmpty ||
         _ageController.text.isEmpty ||
-        _imageUrl.isEmpty) {
+        _imageUrl.isEmpty ||
+        user == null) {
       return;
     }
 
     await _firestore.collection('cats').add({
+      'userId': user.uid, // Add this line
       'name': _nameController.text,
       'type': _typeController.text,
       'age': _ageController.text,
@@ -39,14 +44,18 @@ class _CatsState extends State<Cats> {
   }
 
   void _editCat(String id) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
     if (_nameController.text.isEmpty ||
         _typeController.text.isEmpty ||
         _ageController.text.isEmpty ||
-        _imageUrl.isEmpty) {
+        _imageUrl.isEmpty ||
+        user == null) {
       return;
     }
 
     await _firestore.collection('cats').doc(id).update({
+      'userId': user.uid, // Add this line if necessary
       'name': _nameController.text,
       'type': _typeController.text,
       'age': _ageController.text,
@@ -136,12 +145,17 @@ class _CatsState extends State<Cats> {
 
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('My Cats'),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('cats').snapshots(),
+        stream: _firestore
+            .collection('cats')
+            .where('userId', isEqualTo: user?.uid) // Add this line
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());

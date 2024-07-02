@@ -19,34 +19,7 @@ class _SignupState extends State<Signup> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  File? _image;
-
-  Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
-
-  Future<String?> _uploadImageToStorage(File image, String userId) async {
-    try {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('user_images')
-          .child('$userId.jpg');
-      await ref.putFile(image);
-      return await ref.getDownloadURL();
-    } catch (e) {
-      print("Error uploading image: $e");
-      return null;
-    }
-  }
+  final TextEditingController _imageUrlController = TextEditingController();
 
   Future<void> _signup(BuildContext context) async {
     try {
@@ -57,15 +30,10 @@ class _SignupState extends State<Signup> {
 
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        String? imageUrl;
-        if (_image != null) {
-          imageUrl = await _uploadImageToStorage(_image!, user.uid);
-        }
-
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'name': _nameController.text,
           'email': _emailController.text,
-          'imageUrl': imageUrl ?? '',
+          'imageUrl': _imageUrlController.text,
         });
 
         Navigator.pushReplacementNamed(context, '/home');
@@ -117,7 +85,7 @@ class _SignupState extends State<Signup> {
               const SizedBox(
                 height: 20,
               ),
-              _imagePicker(),
+              _imageUrlField(), // Add this line
               const SizedBox(
                 height: 20,
               ),
@@ -227,35 +195,37 @@ class _SignupState extends State<Signup> {
     );
   }
 
-  Widget _imagePicker() {
+  // Add this new method
+  Widget _imageUrlField() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Profile Image (Optional)',
+          'Profile Image URL (Optional)',
           style: GoogleFonts.raleway(
               textStyle: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.normal,
                   fontSize: 16)),
         ),
-        const SizedBox(height: 16),
-        _image != null
-            ? CircleAvatar(
-                radius: 40,
-                backgroundImage: FileImage(_image!),
-              )
-            : CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.grey[300],
-                child: Icon(
-                  Icons.camera_alt,
-                  color: Colors.grey[700],
-                ),
-              ),
-        TextButton(
-          onPressed: _pickImage,
-          child: Text('Select Image'),
+        const SizedBox(
+          height: 16,
         ),
+        TextField(
+          controller: _imageUrlController,
+          decoration: InputDecoration(
+              filled: true,
+              hintText: 'Image URL',
+              hintStyle: const TextStyle(
+                  color: Color(0xff6A6A6A),
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14),
+              fillColor: const Color(0xffF7F7F9),
+              border: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(14))),
+        )
       ],
     );
   }
